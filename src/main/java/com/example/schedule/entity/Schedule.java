@@ -16,4 +16,10 @@ public class Schedule {
     private LocalDateTime createAt;
     private LocalDateTime updateAt;
 
+    public Schedule(String task, String name, Long password) {
+        this.task = task;
+        this.name = name;
+        this.password = password;
+    }
+
 }
