@@ -19,4 +19,7 @@ public interface ScheduleService {
 
     // 선택 일정 수정
     ScheduleResponseDto updateSchedule(Long id, String task, String name, Long password);
+
+    // 선택 일정 삭제
+    void deleteSchedule(Long id);
 }

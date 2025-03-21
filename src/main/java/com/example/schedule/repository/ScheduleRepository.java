@@ -18,7 +18,10 @@ public interface ScheduleRepository {
     // 선택 일정 조회
     Schedule findScheduleById(Long id);
 
-    // 일정 수정
+    // 선택 일정 수정
     int updateSchedule(Long id, String task, String name);
+
+    // 선택 일정 삭제
+    int deleteSchedule(Long id);
 
 }
