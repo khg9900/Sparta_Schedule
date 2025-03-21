@@ -16,6 +16,9 @@ public interface ScheduleRepository {
     List<ScheduleResponseDto> findAllSchedule(LocalDate findDate, String findName);
 
     // 선택 일정 조회
-    Schedule findScheduleByIdOrElseThrow(Long id);
+    Schedule findScheduleById(Long id);
+
+    // 일정 수정
+    int updateSchedule(Long id, String task, String name);
 
 }

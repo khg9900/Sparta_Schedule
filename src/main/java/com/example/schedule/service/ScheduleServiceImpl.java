@@ -4,7 +4,10 @@ import com.example.schedule.dto.ScheduleRequestDto;
 import com.example.schedule.dto.ScheduleResponseDto;
 import com.example.schedule.entity.Schedule;
 import com.example.schedule.repository.ScheduleRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -32,7 +35,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override // 전체 일정 조회
-    public List<ScheduleResponseDto> findAllSchedule(LocalDate findDate, String findName) {
+    public List<ScheduleResponseDto> findAllSchedules(LocalDate findDate, String findName) {
         // DB 조회
         return scheduleRepository.findAllSchedule(findDate, findName);
     }
@@ -40,7 +43,26 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Override // 선택 일정 조회
     public ScheduleResponseDto findScheduleById(Long id) {
 
-        Schedule schedule =  scheduleRepository.findScheduleByIdOrElseThrow(id);
+        Schedule schedule =  scheduleRepository.findScheduleById(id);
+
+        return new ScheduleResponseDto(schedule);
+    }
+
+    @Transactional
+    @Override
+    public ScheduleResponseDto updateSchedule(Long id, String task, String name, Long password) {
+        // 비밀번호 일치하지 않으면 에러
+
+        // 둘 중 하나라도 없으면 에러
+
+
+        int updateRow = scheduleRepository.updateSchedule(id, task, name);
+
+        if (updateRow == 0) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Does not exist id = " + id);
+        }
+
+        Schedule schedule = scheduleRepository.findScheduleById(id);
 
         return new ScheduleResponseDto(schedule);
     }
