@@ -5,10 +5,10 @@ import com.example.schedule.dto.ScheduleResponseDto;
 import com.example.schedule.service.ScheduleService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/schedules")
@@ -23,10 +23,25 @@ public class ScheduleController {
     }
 
     // 3. 메서드
-    @PostMapping
+    @PostMapping // 일정 생성
     public ResponseEntity<ScheduleResponseDto> saveSchedule(@RequestBody ScheduleRequestDto dto){
-
-        // Service Layer 호출, 응답
+        // 요청 -> RequestDto -> Service Layer / Service Layer -> ResponseDto -> 응답
         return new ResponseEntity<>(scheduleService.saveSchedule(dto), HttpStatus.CREATED);
     }
+
+    @GetMapping // 전체 일정 조회
+    public ResponseEntity<List<ScheduleResponseDto>> findAllSchedule(
+            @RequestParam(required = false) LocalDate findDate,
+            @RequestParam(required = false) String findName
+            ){
+
+        return new ResponseEntity<>(scheduleService.findAllSchedule(findDate, findName), HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}") // 선택 일정 조회
+    public ResponseEntity<ScheduleResponseDto> findScheduleById(@PathVariable Long id){
+
+        return new ResponseEntity<>(scheduleService.findScheduleById(id), HttpStatus.OK);
+    }
+
 }

@@ -22,4 +22,12 @@ public class Schedule {
         this.password = password;
     }
 
+    public Schedule(Long id, String task, String name, LocalDateTime createAt, LocalDateTime updateAt){
+        this.id = id;
+        this.task = task;
+        this.name = name;
+        this.createAt = createAt;
+        this.updateAt = updateAt;
+    }
+
 }
