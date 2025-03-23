@@ -2,6 +2,7 @@ package com.example.schedule.repository;
 
 import com.example.schedule.dto.ScheduleResponseDto;
 import com.example.schedule.entity.Schedule;
+import com.example.schedule.entity.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -10,7 +11,6 @@ import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.sql.Timestamp;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -31,91 +31,103 @@ public class ScheduleRepositoryImpl implements ScheduleRepository {
     }
 
     @Override // 일정 생성
-    public ScheduleResponseDto saveSchedule(Schedule schedule) {
+    public ScheduleResponseDto saveSchedule(Schedule schedule, User user) {
 
-        // INSERT Query 직접 작성하지 않아도 된다.
         SimpleJdbcInsert jdbcInsert = new SimpleJdbcInsert(jdbcTemplate);
-        jdbcInsert.withTableName("schedule").usingGeneratedKeyColumns("id", "createAt", "updateAt");
+
+        // schedule 생성
+        jdbcInsert.withTableName("schedule").usingGeneratedKeyColumns("id", "created_at", "updated_at");
 
         Map<String, Object> parameters = new HashMap<>();
+        parameters.put("user_code", getUserCode(user));
         parameters.put("task", schedule.getTask());
-        parameters.put("name", schedule.getName());
-        parameters.put("password", schedule.getPassword());
 
         // 저장 후 생성된 key값 Number 타입으로 반환하는 메서드
         Number key = jdbcInsert.executeAndReturnKey(new MapSqlParameterSource(parameters));
 
-        LocalDateTime createAt = jdbcTemplate.queryForObject(
-                "SELECT createAt FROM schedule WHERE id = ?",
-                LocalDateTime.class,
-                key
-        );
-
-        LocalDateTime updateAt = jdbcTemplate.queryForObject(
-                "SELECT updateAt FROM schedule WHERE id = ?",
-                LocalDateTime.class,
-                key
-        );
-
-        return new ScheduleResponseDto(key.longValue(), schedule.getTask(), schedule.getName(), createAt, updateAt);
+        return findScheduleById(key.longValue());
     }
 
     @Override // 전체 일정 조회
-    public List<ScheduleResponseDto> findAllSchedule(LocalDate findDate, String findName) {
+    public List<ScheduleResponseDto> findAllSchedule(LocalDate findScheduleUpdatedAt, Long findUserId) {
 
-        if (findDate != null & findName != null) {
-            return jdbcTemplate.query("SELECT * FROM schedule WHERE DATE(updateAt) = ? AND name = ? ORDER BY updateAt DESC", ScheduleRowMapper(), findDate, findName);
-        } else if (findDate != null & findName == null) {
-            return jdbcTemplate.query("SELECT * FROM schedule WHERE DATE(updateAt) = ? ORDER BY updateAt DESC", ScheduleRowMapper(), findDate);
-        } else if (findDate == null & findName != null) {
-            return jdbcTemplate.query("SELECT * FROM schedule WHERE name = ? ORDER BY updateAt DESC", ScheduleRowMapper(), findName);
+        if (findScheduleUpdatedAt != null & findUserId != null) {
+            return jdbcTemplate.query("select schedule.id, email, name, task, schedule.created_at, schedule.updated_at from schedule, user where user.id = schedule.user_code AND user.id = ? AND DATE(schedule.updated_at) = ? ORDER BY updated_at DESC", ResponseRowMapper(), findScheduleUpdatedAt, findUserId);
+        } else if (findScheduleUpdatedAt != null & findUserId == null) {
+            return jdbcTemplate.query("select schedule.id, email, name, task, schedule.created_at, schedule.updated_at from schedule, user where user.id = schedule.user_code AND DATE(schedule.updated_at) = ? ORDER BY updated_at DESC", ResponseRowMapper(), findScheduleUpdatedAt);
+        } else if (findScheduleUpdatedAt == null & findUserId != null) {
+            return jdbcTemplate.query("select schedule.id, email, name, task, schedule.created_at, schedule.updated_at from schedule, user where user.id = schedule.user_code AND user.id = ? ORDER BY updated_at DESC", ResponseRowMapper(), findUserId);
         }
-        return jdbcTemplate.query("SELECT * FROM schedule ORDER BY updateAt DESC", ScheduleRowMapper());
+        return jdbcTemplate.query("select schedule.id, email, name, task, schedule.created_at, schedule.updated_at from schedule, user where user.id = schedule.user_code ORDER BY updated_at DESC", ResponseRowMapper());
 
     }
 
-    @Override
-    public Schedule findScheduleById(Long id) {
-        List<Schedule> result = jdbcTemplate.query("SELECT * FROM schedule WHERE id = ?", ScheduleRowMapperV2(), id);
-        return result.stream().findAny().orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Does not exists id = " + id));
+    @Override // 선택 일정 조회
+    public ScheduleResponseDto findScheduleById(Long id) {
+        return jdbcTemplate.queryForObject("select schedule.id, email, name, task, schedule.created_at, schedule.updated_at from schedule, user where user.id = schedule.user_code AND schedule.id = ?", ResponseRowMapper(), id);
     }
 
-    @Override
-    public int updateSchedule(Long id, String task, String name) {
-        return jdbcTemplate.update("UPDATE schedule SET task = ?, name = ?  WHERE id = ?", task, name, id);
+    @Override // 선택 일정 수정
+    public int updateSchedule(Long id, String name, String task) {
+        return jdbcTemplate.update("UPDATE schedule, user SET task = ?, name = ?  WHERE user.id = schedule.user_code AND schedule.id = ?", task, name, id);
     }
 
-    @Override
+    @Override // 선택 일정 삭제
     public int deleteSchedule(Long id) {
         return jdbcTemplate.update("DELETE FROM schedule WHERE id = ?", id);
     }
 
-    private RowMapper<ScheduleResponseDto> ScheduleRowMapper() {
+    // user 테이블에 user 데이터 생성 후 userId 반환
+    public Long getUserCode(User user) {
+        // email(unique)가 DB에 존재하는지 확인
+        List<Long> userId = jdbcTemplate.query("SELECT id FROM user WHERE email = ?", UserIdMapper(), user.getEmail());
+
+        if (userId.isEmpty()) { // 없는 경우 user 새로 생성
+            jdbcTemplate.update("INSERT INTO user (email, password, name) VALUES (?, ?, ?)", user.getEmail(), user.getPassword(), user.getName());
+        } else {
+            // DB에 저장된 작성명과 입력된 작성자명이 동일한지 확인
+            List<String> userName = jdbcTemplate.query("SELECT name FROM user WHERE email = ?", UserNameMapper(), user.getEmail());
+            if (!user.getName().equals(userName.get(0))) {
+                // 불일치할 경우 email 중복값 삽입 불가
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+            }
+        }
+
+        // DB에서 작성자 식별자 가져오기
+        return jdbcTemplate.queryForObject("SELECT id FROM user WHERE email = ?", Long.class, user.getEmail());
+    }
+
+    // 쿼리 결괏값을 ScheduleResponseDto 객체로 변환
+    private RowMapper<ScheduleResponseDto> ResponseRowMapper() {
         return new RowMapper<ScheduleResponseDto>() {
             @Override
             public ScheduleResponseDto mapRow(ResultSet rs, int rowNum) throws SQLException {
                 return new ScheduleResponseDto(
                         rs.getLong("id"),
-                        rs.getString("task"),
+                        rs.getString("email"),
                         rs.getString("name"),
-                        rs.getTimestamp("createAt").toLocalDateTime(),
-                        rs.getTimestamp("updateAt").toLocalDateTime()
+                        rs.getString("task"),
+                        rs.getTimestamp("created_at").toLocalDateTime(),
+                        rs.getTimestamp("updated_at").toLocalDateTime()
                 );
             }
         };
     }
 
-    private RowMapper<Schedule> ScheduleRowMapperV2() {
-        return new RowMapper<Schedule>() {
+    private RowMapper<Long> UserIdMapper() {
+        return new RowMapper<Long>() {
             @Override
-            public Schedule mapRow(ResultSet rs, int rowNum) throws SQLException {
-                return new Schedule(
-                        rs.getLong("id"),
-                        rs.getString("task"),
-                        rs.getString("name"),
-                        rs.getTimestamp("createAt").toLocalDateTime(),
-                        rs.getTimestamp("updateAt").toLocalDateTime()
-                );
+            public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
+                return rs.getLong("id");
+            }
+        };
+    }
+
+    private RowMapper<String> UserNameMapper() {
+        return new RowMapper<String>() {
+            @Override
+            public String mapRow(ResultSet rs, int rowNum) throws SQLException {
+                return rs.getString("name");
             }
         };
     }

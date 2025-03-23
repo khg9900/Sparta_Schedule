@@ -3,6 +3,7 @@ package com.example.schedule.service;
 import com.example.schedule.dto.ScheduleRequestDto;
 import com.example.schedule.dto.ScheduleResponseDto;
 import com.example.schedule.entity.Schedule;
+import com.example.schedule.entity.User;
 import com.example.schedule.repository.ScheduleRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -27,50 +28,44 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Override // 일정 생성
     public ScheduleResponseDto saveSchedule(ScheduleRequestDto dto) {
 
-        // 요청받은 데이터로 Schedule 객체 생성
-        Schedule schedule = new Schedule(dto.getTask(), dto.getName(), dto.getPassword());
+        // 요청받은 데이터로 객체 생성
+        Schedule schedule = new Schedule(dto.getTask());
+        User user = new User(dto.getEmail(), dto.getPassword(), dto.getName());
 
-        // DB 저장
-        return scheduleRepository.saveSchedule(schedule);
+        return scheduleRepository.saveSchedule(schedule, user);
     }
 
     @Override // 전체 일정 조회
-    public List<ScheduleResponseDto> findAllSchedules(LocalDate findDate, String findName) {
-        // DB 조회
-        return scheduleRepository.findAllSchedule(findDate, findName);
+    public List<ScheduleResponseDto> findAllSchedules(LocalDate findScheduleUpdatedAt, Long findUserId) {
+        return scheduleRepository.findAllSchedule(findScheduleUpdatedAt, findUserId);
     }
 
     @Override // 선택 일정 조회
     public ScheduleResponseDto findScheduleById(Long id) {
-
-        Schedule schedule =  scheduleRepository.findScheduleById(id);
-
-        return new ScheduleResponseDto(schedule);
+        return scheduleRepository.findScheduleById(id);
     }
 
     @Transactional
     @Override
-    public ScheduleResponseDto updateSchedule(Long id, String task, String name, Long password) {
+    public ScheduleResponseDto updateSchedule(Long id, Long password, String name, String task) {
         // 비밀번호 일치하지 않으면 에러
 
-        // 둘 중 하나라도 없으면 에러
 
+        int updateRow = scheduleRepository.updateSchedule(id, name, task);
 
-        int updateRow = scheduleRepository.updateSchedule(id, task, name);
-
+        // 업데이트할 id가 없으면 에러 발생
         if (updateRow == 0) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Does not exist id = " + id);
         }
 
-        Schedule schedule = scheduleRepository.findScheduleById(id);
-
-        return new ScheduleResponseDto(schedule);
+        return scheduleRepository.findScheduleById(id);
     }
 
     @Override
     public void deleteSchedule(Long id) {
         int deleteRow = scheduleRepository.deleteSchedule(id);
 
+        // 삭제할 id가 없으면 에러 발생
         if (deleteRow == 0) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Does not exist id = " + id);
         }

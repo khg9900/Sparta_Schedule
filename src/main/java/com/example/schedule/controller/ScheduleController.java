@@ -25,34 +25,33 @@ public class ScheduleController {
     // 3. 메서드
     @PostMapping // 일정 생성
     public ResponseEntity<ScheduleResponseDto> saveSchedule(@RequestBody ScheduleRequestDto dto) {
-        // 요청 -> RequestDto -> Service Layer / Service Layer -> ResponseDto -> 응답
         return new ResponseEntity<>(scheduleService.saveSchedule(dto), HttpStatus.CREATED);
     }
 
     @GetMapping // 전체 일정 조회
     public ResponseEntity<List<ScheduleResponseDto>> findAllSchedules(
-            @RequestParam(required = false) LocalDate findDate,
-            @RequestParam(required = false) String findName
+            // 일정 수정일과 작성자 ID를 쿼리 파라미터로 입력받고(필수X), 해당 조건으로 전체 일정 조회 가능
+            @RequestParam(required = false) LocalDate findScheduleUpdatedAt,
+            @RequestParam(required = false) Long findUserId
             ) {
-
-        return new ResponseEntity<>(scheduleService.findAllSchedules(findDate, findName), HttpStatus.OK);
+        return new ResponseEntity<>(scheduleService.findAllSchedules(findScheduleUpdatedAt, findUserId), HttpStatus.OK);
     }
 
-    @GetMapping("/{id}") // 선택 일정 조회
+    @GetMapping("/{id}") // 일정 ID로 일정 조회
     public ResponseEntity<ScheduleResponseDto> findScheduleById(@PathVariable Long id) {
 
         return new ResponseEntity<>(scheduleService.findScheduleById(id), HttpStatus.OK);
     }
 
-    @PatchMapping("/{id}") // 선택 일정 수정
+    @PatchMapping("/{id}") // 수정
     public ResponseEntity<ScheduleResponseDto> updateSchedule(
             @PathVariable Long id,
             @RequestBody ScheduleRequestDto dto
     ) {
-        return new ResponseEntity<>(scheduleService.updateSchedule(id, dto.getTask(), dto.getName(), dto.getPassword()), HttpStatus.OK);
+        return new ResponseEntity<>(scheduleService.updateSchedule(id, dto.getPassword(), dto.getName(), dto.getTask()), HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}") // 삭제
     public ResponseEntity<Void> deleteSchedule(@PathVariable Long id){
         scheduleService.deleteSchedule(id);
         return new ResponseEntity<>(HttpStatus.OK);

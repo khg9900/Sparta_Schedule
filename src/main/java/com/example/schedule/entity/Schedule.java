@@ -9,25 +9,14 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class Schedule {
 
-    private Long id;
-    private String task;
-    private String name;
-    private Long password;
-    private LocalDateTime createAt;
-    private LocalDateTime updateAt;
+    private Long scheduleId; // 일정 식별자. DB에서 자동 생성
+    private Long userCode; // 작성자 ID. FK
+    private String task; // 할 일
+    private LocalDateTime scheduleCreatedAt; // 작성일. DB에서 자동 생성
+    private LocalDateTime scheduleUpdatedAt; // 수정일. DB에서 자동 생성
 
-    public Schedule(String task, String name, Long password) {
+    public Schedule(String task) {
         this.task = task;
-        this.name = name;
-        this.password = password;
-    }
-
-    public Schedule(Long id, String task, String name, LocalDateTime createAt, LocalDateTime updateAt){
-        this.id = id;
-        this.task = task;
-        this.name = name;
-        this.createAt = createAt;
-        this.updateAt = updateAt;
     }
 
 }

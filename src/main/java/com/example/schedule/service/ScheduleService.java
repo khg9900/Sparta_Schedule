@@ -12,13 +12,13 @@ public interface ScheduleService {
     ScheduleResponseDto saveSchedule(ScheduleRequestDto dto);
 
     // 전체 일정 조회
-    List<ScheduleResponseDto> findAllSchedules(LocalDate findDate, String findName);
+    List<ScheduleResponseDto> findAllSchedules(LocalDate findScheduleUpdatedAt, Long findUserId);
 
     // 선택 일정 조회
     ScheduleResponseDto findScheduleById(Long id);
 
     // 선택 일정 수정
-    ScheduleResponseDto updateSchedule(Long id, String task, String name, Long password);
+    ScheduleResponseDto updateSchedule(Long id, Long password, String name, String task);
 
     // 선택 일정 삭제
     void deleteSchedule(Long id);
