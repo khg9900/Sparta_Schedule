@@ -2,7 +2,6 @@ package com.example.schedule.service;
 
 import com.example.schedule.dto.ScheduleRequestDto;
 import com.example.schedule.dto.ScheduleResponseDto;
-
 import java.time.LocalDate;
 import java.util.List;
 
@@ -12,7 +11,7 @@ public interface ScheduleService {
     ScheduleResponseDto saveSchedule(ScheduleRequestDto dto);
 
     // 전체 일정 조회
-    List<ScheduleResponseDto> findAllSchedules(LocalDate findScheduleUpdatedAt, Long findUserId);
+    List<ScheduleResponseDto> findAllSchedules(LocalDate findScheduleUpdatedAt, Long findUserId, Long pageNumber, Long pageSize);
 
     // 선택 일정 조회
     ScheduleResponseDto findScheduleById(Long id);

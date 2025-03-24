@@ -32,9 +32,11 @@ public class ScheduleController {
     public ResponseEntity<List<ScheduleResponseDto>> findAllSchedules(
             // 일정 수정일과 작성자 ID를 쿼리 파라미터로 입력받고(필수X), 해당 조건으로 전체 일정 조회 가능
             @RequestParam(required = false) LocalDate findScheduleUpdatedAt,
-            @RequestParam(required = false) Long findUserId
+            @RequestParam(required = false) Long findUserId,
+            @RequestParam(defaultValue = "1") Long pageNumber,
+            @RequestParam(defaultValue = "3") Long pageSize
             ) {
-        return new ResponseEntity<>(scheduleService.findAllSchedules(findScheduleUpdatedAt, findUserId), HttpStatus.OK);
+        return new ResponseEntity<>(scheduleService.findAllSchedules(findScheduleUpdatedAt, findUserId, pageNumber, pageSize), HttpStatus.OK);
     }
 
     @GetMapping("/{id}") // 일정 ID로 일정 조회

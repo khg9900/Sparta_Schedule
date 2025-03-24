@@ -14,7 +14,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,17 +48,21 @@ public class ScheduleRepositoryImpl implements ScheduleRepository {
     }
 
     @Override // 전체 일정 조회
-    public List<ScheduleResponseDto> findAllSchedule(LocalDate findScheduleUpdatedAt, Long findUserId) {
+    public List<ScheduleResponseDto> findAllSchedule(LocalDate findScheduleUpdatedAt, Long findUserId, String pageSize, String pageOffset) {
+        // 공통 query
+        String selectQuery = "SELECT schedule.id, email, name, task, schedule.created_at, schedule.updated_at from schedule, user" +
+                        " WHERE user.id = schedule.user_code";
+        String sortQuery = " ORDER BY updated_at DESC LIMIT " + pageSize + " OFFSET " + pageOffset;
 
+        // 조회 조건별로 return
         if (findScheduleUpdatedAt != null & findUserId != null) {
-            return jdbcTemplate.query("select schedule.id, email, name, task, schedule.created_at, schedule.updated_at from schedule, user where user.id = schedule.user_code AND user.id = ? AND DATE(schedule.updated_at) = ? ORDER BY updated_at DESC", ResponseRowMapper(), findScheduleUpdatedAt, findUserId);
+            return jdbcTemplate.query(selectQuery + " AND user.id = ? AND DATE(schedule.updated_at) = ?" + sortQuery + "Limit", ResponseRowMapper(), findScheduleUpdatedAt, findUserId);
         } else if (findScheduleUpdatedAt != null & findUserId == null) {
-            return jdbcTemplate.query("select schedule.id, email, name, task, schedule.created_at, schedule.updated_at from schedule, user where user.id = schedule.user_code AND DATE(schedule.updated_at) = ? ORDER BY updated_at DESC", ResponseRowMapper(), findScheduleUpdatedAt);
-        } else if (findScheduleUpdatedAt == null & findUserId != null) {
-            return jdbcTemplate.query("select schedule.id, email, name, task, schedule.created_at, schedule.updated_at from schedule, user where user.id = schedule.user_code AND user.id = ? ORDER BY updated_at DESC", ResponseRowMapper(), findUserId);
+            return jdbcTemplate.query(selectQuery + " AND DATE(schedule.updated_at) = ?" + sortQuery, ResponseRowMapper(), findScheduleUpdatedAt);
+        } else if (findUserId != null) {
+            return jdbcTemplate.query(selectQuery + " AND user.id = ?"  + sortQuery, ResponseRowMapper(), findUserId);
         }
-        return jdbcTemplate.query("select schedule.id, email, name, task, schedule.created_at, schedule.updated_at from schedule, user where user.id = schedule.user_code ORDER BY updated_at DESC", ResponseRowMapper());
-
+        return jdbcTemplate.query(selectQuery + sortQuery, ResponseRowMapper());
     }
 
     @Override // 선택 일정 조회
@@ -92,7 +95,6 @@ public class ScheduleRepositoryImpl implements ScheduleRepository {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
             }
         }
-
         // DB에서 작성자 식별자 가져오기
         return jdbcTemplate.queryForObject("SELECT id FROM user WHERE email = ?", Long.class, user.getEmail());
     }

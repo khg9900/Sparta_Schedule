@@ -36,8 +36,9 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override // 전체 일정 조회
-    public List<ScheduleResponseDto> findAllSchedules(LocalDate findScheduleUpdatedAt, Long findUserId) {
-        return scheduleRepository.findAllSchedule(findScheduleUpdatedAt, findUserId);
+    public List<ScheduleResponseDto> findAllSchedules(LocalDate findScheduleUpdatedAt, Long findUserId, Long pageNumber, Long pageSize) {
+        Long pageOffset = (pageNumber - 1) * pageSize;
+        return scheduleRepository.findAllSchedule(findScheduleUpdatedAt, findUserId, pageSize.toString(), pageOffset.toString());
     }
 
     @Override // 선택 일정 조회
@@ -49,7 +50,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Override
     public ScheduleResponseDto updateSchedule(Long id, Long password, String name, String task) {
         // 비밀번호 일치하지 않으면 에러
-
+        //
 
         int updateRow = scheduleRepository.updateSchedule(id, name, task);
 
@@ -70,5 +71,4 @@ public class ScheduleServiceImpl implements ScheduleService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Does not exist id = " + id);
         }
     }
-
 }
