@@ -3,6 +3,7 @@ package com.example.schedule.controller;
 import com.example.schedule.dto.ScheduleRequestDto;
 import com.example.schedule.dto.ScheduleResponseDto;
 import com.example.schedule.service.ScheduleService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +25,7 @@ public class ScheduleController {
 
     // 3. 메서드
     @PostMapping // 일정 생성
-    public ResponseEntity<ScheduleResponseDto> saveSchedule(@RequestBody ScheduleRequestDto dto) {
+    public ResponseEntity<ScheduleResponseDto> saveSchedule(@Valid @RequestBody ScheduleRequestDto dto) {
         return new ResponseEntity<>(scheduleService.saveSchedule(dto), HttpStatus.CREATED);
     }
 
@@ -48,7 +49,7 @@ public class ScheduleController {
     @PatchMapping("/{id}") // 수정
     public ResponseEntity<ScheduleResponseDto> updateSchedule(
             @PathVariable Long id,
-            @RequestBody ScheduleRequestDto dto
+            @Valid @RequestBody ScheduleRequestDto dto
     ) {
         return new ResponseEntity<>(scheduleService.updateSchedule(id, dto.getPassword(), dto.getName(), dto.getTask()), HttpStatus.OK);
     }
