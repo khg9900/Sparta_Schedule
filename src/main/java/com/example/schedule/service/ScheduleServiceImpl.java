@@ -5,10 +5,8 @@ import com.example.schedule.dto.ScheduleResponseDto;
 import com.example.schedule.entity.Schedule;
 import com.example.schedule.entity.User;
 import com.example.schedule.repository.ScheduleRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -49,26 +47,14 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Transactional
     @Override
     public ScheduleResponseDto updateSchedule(Long id, Long password, String name, String task) {
-        // 비밀번호 일치하지 않으면 에러
-        //
 
-        int updateRow = scheduleRepository.updateSchedule(id, name, task);
-
-        // 업데이트할 id가 없으면 에러 발생
-        if (updateRow == 0) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Does not exist id = " + id);
-        }
+        int updateRow = scheduleRepository.updateSchedule(id, password, name, task);
 
         return scheduleRepository.findScheduleById(id);
     }
 
     @Override
-    public void deleteSchedule(Long id) {
-        int deleteRow = scheduleRepository.deleteSchedule(id);
-
-        // 삭제할 id가 없으면 에러 발생
-        if (deleteRow == 0) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Does not exist id = " + id);
-        }
+    public void deleteSchedule(Long id, Long password) {
+        int deleteRow = scheduleRepository.deleteSchedule(id, password);
     }
 }

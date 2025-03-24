@@ -18,12 +18,9 @@ public interface ScheduleRepository {
     ScheduleResponseDto findScheduleById(Long id);
 
     // 선택 일정 수정
-    int updateSchedule(Long id, String name, String task);
-
-//    int updateTask(Long id, String task);
-//    int updateUserName(Long id, String name);
+    int updateSchedule(Long id, Long password, String name, String task);
 
     // 선택 일정 삭제
-    int deleteSchedule(Long id);
+    int deleteSchedule(Long id, Long password);
 
 }

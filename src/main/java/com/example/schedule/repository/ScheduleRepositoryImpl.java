@@ -3,6 +3,7 @@ package com.example.schedule.repository;
 import com.example.schedule.dto.ScheduleResponseDto;
 import com.example.schedule.entity.Schedule;
 import com.example.schedule.entity.User;
+import com.example.schedule.exception.InvalidPasswordException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -71,12 +72,14 @@ public class ScheduleRepositoryImpl implements ScheduleRepository {
     }
 
     @Override // 선택 일정 수정
-    public int updateSchedule(Long id, String name, String task) {
+    public int updateSchedule(Long id, Long password, String name, String task) {
+        isCorrectPassword(id, password);
         return jdbcTemplate.update("UPDATE schedule, user SET task = ?, name = ?  WHERE user.id = schedule.user_code AND schedule.id = ?", task, name, id);
     }
 
     @Override // 선택 일정 삭제
-    public int deleteSchedule(Long id) {
+    public int deleteSchedule(Long id, Long password) {
+        isCorrectPassword(id, password);
         return jdbcTemplate.update("DELETE FROM schedule WHERE id = ?", id);
     }
 
@@ -97,6 +100,15 @@ public class ScheduleRepositoryImpl implements ScheduleRepository {
         }
         // DB에서 작성자 식별자 가져오기
         return jdbcTemplate.queryForObject("SELECT id FROM user WHERE email = ?", Long.class, user.getEmail());
+    }
+
+
+    public void isCorrectPassword(Long id, Long password) {
+        String query = "select password = ? from user where id = (select user_code from schedule where id = ?)";
+        Long result = jdbcTemplate.queryForObject(query, Long.class, password, id);
+        if (result == 0) {
+            throw new InvalidPasswordException("비밀번호가 일치하지 않습니다.");
+        }
     }
 
     // 쿼리 결괏값을 ScheduleResponseDto 객체로 변환

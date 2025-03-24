@@ -6,11 +6,13 @@ import com.example.schedule.service.ScheduleService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/api/schedules")
 public class ScheduleController {
@@ -46,7 +48,7 @@ public class ScheduleController {
         return new ResponseEntity<>(scheduleService.findScheduleById(id), HttpStatus.OK);
     }
 
-    @PatchMapping("/{id}") // 수정
+    @PatchMapping("/{id}") // 선택 일정 수정
     public ResponseEntity<ScheduleResponseDto> updateSchedule(
             @PathVariable Long id,
             @Valid @RequestBody ScheduleRequestDto dto
@@ -54,9 +56,12 @@ public class ScheduleController {
         return new ResponseEntity<>(scheduleService.updateSchedule(id, dto.getPassword(), dto.getName(), dto.getTask()), HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}") // 삭제
-    public ResponseEntity<Void> deleteSchedule(@PathVariable Long id){
-        scheduleService.deleteSchedule(id);
+    @DeleteMapping("/{id}") // 선택 일정 삭제
+    public ResponseEntity<Void> deleteSchedule(
+            @PathVariable Long id,
+            @RequestHeader Long password
+    ){
+        scheduleService.deleteSchedule(id, password);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
