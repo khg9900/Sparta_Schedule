@@ -72,15 +72,15 @@ public class ScheduleRepositoryImpl implements ScheduleRepository {
     }
 
     @Override // 선택 일정 수정
-    public int updateSchedule(Long id, Long password, String name, String task) {
+    public void updateSchedule(Long id, Long password, String name, String task) {
         isCorrectPassword(id, password);
-        return jdbcTemplate.update("UPDATE schedule, user SET task = ?, name = ?  WHERE user.id = schedule.user_code AND schedule.id = ?", task, name, id);
+        jdbcTemplate.update("UPDATE schedule, user SET task = ?, name = ?  WHERE user.id = schedule.user_code AND schedule.id = ?", task, name, id);
     }
 
     @Override // 선택 일정 삭제
-    public int deleteSchedule(Long id, Long password) {
+    public void deleteSchedule(Long id, Long password) {
         isCorrectPassword(id, password);
-        return jdbcTemplate.update("DELETE FROM schedule WHERE id = ?", id);
+        jdbcTemplate.update("DELETE FROM schedule WHERE id = ?", id);
     }
 
     // user 테이블에 user 데이터 생성 후 userId 반환
