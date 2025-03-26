@@ -47,14 +47,12 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Transactional
     @Override
     public ScheduleResponseDto updateSchedule(Long id, Long password, String name, String task) {
-
-        int updateRow = scheduleRepository.updateSchedule(id, password, name, task);
-
+        scheduleRepository.updateSchedule(id, password, name, task);
         return scheduleRepository.findScheduleById(id);
     }
 
     @Override
     public void deleteSchedule(Long id, Long password) {
-        int deleteRow = scheduleRepository.deleteSchedule(id, password);
+        scheduleRepository.deleteSchedule(id, password);
     }
 }

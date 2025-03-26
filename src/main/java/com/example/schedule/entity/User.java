@@ -13,8 +13,8 @@ public class User {
     private String email; // 이메일. unique
     private Long password; // 비밀번호
     private String name; // 작성자명
-    private LocalDateTime userCreatedAt; // 등록일. DB에서 자동 생성
-    private LocalDateTime userUpdatedAt; // 수정일. DB에서 자동 생성
+    private LocalDateTime CreatedAt; // 등록일. DB에서 자동 생성
+    private LocalDateTime UpdatedAt; // 수정일. DB에서 자동 생성
 
     public User(String email, Long password, String name) {
         this.email = email;
