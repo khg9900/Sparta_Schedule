@@ -17,13 +17,13 @@ public class MyExceptionHandler {
 
     // 비밀번호가 일치하지 않을 때
     @ExceptionHandler(InvalidPasswordException.class)
-    public ResponseEntity<String> handleInvalidPasswordException(InvalidPasswordException ex){
+    public ResponseEntity<String> handleInvalidPasswordException(InvalidPasswordException ex) {
         return new ResponseEntity<String>(ex.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 
     // 일정 식별자가 존재하지 않을 때
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleEmptyResultDataAccessException(EmptyResultDataAccessException ex){
+    public ResponseEntity<String> handleEmptyResultDataAccessException(EmptyResultDataAccessException ex) {
         return new ResponseEntity<String>("요청하신 일정이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
     }
 
@@ -35,6 +35,11 @@ public class MyExceptionHandler {
             errors.put(error.getField(), error.getDefaultMessage());
         }
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(NullPointerException.class)
+    public ResponseEntity<String> handleNullPointerException(NullPointerException ex) {
+        return new ResponseEntity<String>("입력 값을 확인해주세요.", HttpStatus.BAD_REQUEST);
     }
 
 }
